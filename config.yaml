@@ -1,0 +1,7 @@
+server: "DESKTOP-3POIBU6"
+port: "49734"
+database: "softrestaurant10"
+username: "sa"
+password: "National09"
+documento: "Grupo_Vierci.xlsx"
+descuento:  #id del descuento fijo para agregar. Si son sin descuento dejar vacío.
