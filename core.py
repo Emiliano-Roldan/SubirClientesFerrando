@@ -228,17 +228,19 @@ class send:
 
     def veriffyClient(self, clientes, exceldata):
         try:
-            #print(len(exceldata))
             for p in exceldata:
-                #print(f"Voy a buscar {p['cedula']} - {p['nombre']}")
-                clienteFind = next((cliente for cliente in clientes if cliente["cedula"] == p["cedula"]), None)
-                #print(f"Lo encontré {clienteFind}") if clienteFind else print(f"No lo encontré {clienteFind}")
-                if not clienteFind is None:
-                    #print(f"Existe este cliente {clienteFind['idcliente']} que es: {p} - HAY QUE IR A VER SI SE MODIFICO ALGUN DATO")
-                    if clienteFind['nombre'] != p['nombre']:
-                        #print(f"Edito cliente: {clienteFind['idcliente']} - {clienteFind['nombre']} - {p['nombre']}")
-                        self.editClient(p)
+                # Buscar cliente por cédula
+                clienteFind = next((cliente for cliente in clientes if cliente["idcliente"] == p["cedula"]), None)
+                #print(f"(antes) clienteFind: {clienteFind}")
+                if clienteFind is None:
+                    clienteFind = next((cliente for cliente in clientes if cliente["cedula"] == p["cedula"]), None)
+                #print(f"(despues) clienteFind: {clienteFind}")
+                if clienteFind is not None:
+                    # Si se encuentra el cliente, verificar si hay cambios en los datos
+                    #if clienteFind['nombre'] != p['nombre']:
+                    self.editClient(p)
                 else:
+                    # Si no se encuentra el cliente, crearlo
                     self.createClient(p)
         except Exception as e:
             self.log.write_to_log(f"(veriffyClient) - Se produjo un error: {str(e)}")
@@ -261,9 +263,12 @@ class send:
 
     def editClient(self, cliente):
         try:
+            descuento = ""
+            if self.configuration.descuento:
+                descuento = self.configuration.descuento
             pyodbc_connection = self.connection.connection
             DataManipulator = cs.SQLServerDataManipulator(pyodbc_connection)
-            DataManipulator.update(f"UPDATE clientes SET nombre = '{cliente['nombre']}' WHERE idcliente = '{cliente['cedula']}'")
+            DataManipulator.update(f"UPDATE clientes SET nombre = '{cliente['nombre']}', descuento = 0, idtipodescuento = '{descuento}', curp = '{cliente['cedula']}' WHERE idcliente = '{cliente['cedula']}'")
             return True
         except Exception as e:
             self.log.write_to_log(f"(editClient) - Se produjo un error: {str(e)}")
